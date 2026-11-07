@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>House of Challenge - Réservation de Lives</title>
+    <title>OCD - Opportunités C'est Dehors</title>
     <style>
         /* --- RESET & BASE --- */
         * {
@@ -61,7 +61,7 @@
         .choice-section h2 {
             font-size: 1.5rem;
             margin-bottom: 25px;
-            color: #e67e22; /* Couleur orange du logo */
+            color: #e67e22;
         }
 
         .choice-buttons {
@@ -105,7 +105,7 @@
 
         /* --- SECTION CALENDRIER --- */
         .calendar-section {
-            display: none; /* Caché par défaut */
+            display: none;
             background: #fff;
             padding: 30px;
             border-radius: 12px;
@@ -127,6 +127,21 @@
         .calendar-header h3 {
             font-size: 1.3rem;
             color: #333;
+        }
+
+        /* Boutons de navigation du calendrier */
+        .nav-btn {
+            background: #e67e22;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .nav-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
 
         .calendar-grid {
@@ -164,15 +179,9 @@
             cursor: default;
         }
 
-        .calendar-day.disabled {
-            color: #ccc;
-            cursor: not-allowed;
-            text-decoration: line-through;
-        }
-
         /* --- SECTION PACKAGES --- */
         .packages-section {
-            display: none; /* Caché par défaut */
+            display: none;
             margin-bottom: 50px;
         }
 
@@ -255,15 +264,16 @@
             background-color: #d35400;
         }
 
-        /* --- MODAL DE CONFIRMATION --- */
+        /* --- MODAL DE RESERVATION (FORMULAIRE) --- */
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            overflow-y: auto; /* Permet de scroller si le formulaire est grand */
         }
 
         .modal.active {
@@ -276,28 +286,67 @@
             border-radius: 12px;
             max-width: 500px;
             width: 90%;
-            text-align: center;
             position: relative;
+            margin: 20px auto;
         }
 
         .modal-content h3 {
-            color: #27ae60;
-            margin-bottom: 15px;
+            color: #333;
+            margin-bottom: 5px;
+            text-align: center;
         }
 
-        .modal-content p {
-            margin-bottom: 10px;
+        .modal-subtitle {
+            text-align: center;
+            color: #e67e22;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
             text-align: left;
         }
 
-        .modal-content .close-btn {
-            background: #333;
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .btn-cancel {
+            background: #ccc;
+            color: #333;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-submit {
+            background: #27ae60;
             color: #fff;
             border: none;
             padding: 10px 20px;
             border-radius: 8px;
             cursor: pointer;
-            margin-top: 20px;
             font-weight: 600;
         }
 
@@ -323,10 +372,9 @@
 
     <!-- HEADER -->
     <header>
-        <!-- Assurez-vous que logo.png est dans le même dossier -->
-        <img src="logo.png" alt="Logo House of Challenge">
-        <h1>Réservez votre Live</h1>
-        <p>Propulsez votre produit avec House of Challenge</p>
+        <img src="logo.png" alt="Logo OCD">
+        <h1>Réservez votre Live avec OCD</h1>
+        <p>Opportunités C'est Dehors</p>
     </header>
 
     <div class="container">
@@ -349,8 +397,9 @@
         <!-- SECTION 2 : CALENDRIER -->
         <section class="calendar-section" id="calendarSection">
             <div class="calendar-header">
-                <h3>Décembre 2026</h3>
-                <span style="color:#666; font-size:0.9rem;">Sélectionnez une date de début</span>
+                <button class="nav-btn" id="prevMonth" onclick="changeMonth(-1)">◀ Précédent</button>
+                <h3 id="monthLabel">Décembre 2026</h3>
+                <button class="nav-btn" id="nextMonth" onclick="changeMonth(1)">Suivant ▶</button>
             </div>
             <div class="calendar-grid" id="calendarGrid">
                 <!-- Les jours seront générés par JS -->
@@ -366,8 +415,8 @@
                     <h3>Découverte</h3>
                     <div class="duration">1h30 de live</div>
                     <div class="price">15 000 FCFA</div>
-                    <div class="bonus">Live standard sur le compte HOC</div>
-                    <button onclick="openModal('Découverte', '1h30', '15 000 FCFA')">Réserver</button>
+                    <div class="bonus">Live standard sur le compte OCD</div>
+                    <button onclick="openReservationForm('Découverte', '1h30', '15 000 FCFA')">Réserver</button>
                 </div>
                 <!-- Package 2 -->
                 <div class="package-card">
@@ -375,23 +424,23 @@
                     <div class="duration">2h de live</div>
                     <div class="price">20 000 FCFA</div>
                     <div class="bonus">Live + Mention de votre compte</div>
-                    <button onclick="openModal('Standard', '2h', '20 000 FCFA')">Réserver</button>
+                    <button onclick="openReservationForm('Standard', '2h', '20 000 FCFA')">Réserver</button>
                 </div>
                 <!-- Package 3 -->
                 <div class="package-card">
                     <h3>Boost</h3>
                     <div class="duration">3h de live</div>
                     <div class="price">25 000 FCFA</div>
-                    <div class="bonus">Live + Teaser sur les stories de HOC</div>
-                    <button onclick="openModal('Boost', '3h', '25 000 FCFA')">Réserver</button>
+                    <div class="bonus">Live + Teaser sur les stories de OCD</div>
+                    <button onclick="openReservationForm('Boost', '3h', '25 000 FCFA')">Réserver</button>
                 </div>
                 <!-- Package 4 -->
                 <div class="package-card">
                     <h3>Premium</h3>
                     <div class="duration">4h de live</div>
                     <div class="price">30 000 FCFA</div>
-                    <div class="bonus">Live + Vidéo d'annonce de Bovan</div>
-                    <button onclick="openModal('Premium', '4h', '30 000 FCFA')">Réserver</button>
+                    <div class="bonus">Live + Le compte House of Challenge poste une vidéo d'annonce de votre venue</div>
+                    <button onclick="openReservationForm('Premium', '4h', '30 000 FCFA')">Réserver</button>
                 </div>
                 <!-- Package 5 -->
                 <div class="package-card">
@@ -399,7 +448,7 @@
                     <div class="duration">5h de live</div>
                     <div class="price">35 000 FCFA</div>
                     <div class="bonus">Premium + Rediffusion sur le réseau</div>
-                    <button onclick="openModal('Exclusif', '5h', '35 000 FCFA')">Réserver</button>
+                    <button onclick="openReservationForm('Exclusif', '5h', '35 000 FCFA')">Réserver</button>
                 </div>
                 <!-- Package 6 -->
                 <div class="package-card">
@@ -407,41 +456,71 @@
                     <div class="duration">Mois complet</div>
                     <div class="price">50 000 FCFA</div>
                     <div class="bonus">Visibilité continue sur le mois</div>
-                    <button onclick="openModal('Pack Intégral', 'Mois', '50 000 FCFA')">Réserver</button>
+                    <button onclick="openReservationForm('Pack Intégral', 'Mois', '50 000 FCFA')">Réserver</button>
                 </div>
             </div>
         </section>
     </div>
 
-    <!-- MODAL DE CONFIRMATION -->
-    <div class="modal" id="confirmationModal">
+    <!-- MODAL DE RESERVATION (FORMULAIRE) -->
+    <div class="modal" id="reservationModal">
         <div class="modal-content">
-            <h3>✅ Réservation Initiatisée !</h3>
-            <p><strong>Package :</strong> <span id="modalPackage"></span></p>
-            <p><strong>Durée :</strong> <span id="modalDuration"></span></p>
-            <p><strong>Prix :</strong> <span id="modalPrice"></span></p>
-            <p><strong>Mode :</strong> <span id="modalMode"></span></p>
-            <p><strong>Date :</strong> <span id="modalDate"></span></p>
-            <br>
-            <p style="font-size:0.9rem; color:#666;">Dans la version finale, vous serez redirigé vers Cal.com pour remplir vos informations (Nom, Business) et procéder au paiement.</p>
-            <button class="close-btn" onclick="closeModal()">Fermer</button>
+            <h3>Finaliser votre réservation</h3>
+            <div class="modal-subtitle" id="recapPackage"></div>
+            
+            <!-- Le formulaire envoie les données à FormSubmit -->
+            <form action="https://formsubmit.co/VOTRE_EMAIL_ICI@email.com" method="POST">
+                <!-- Champs cachés pour l'e-mail -->
+                <input type="hidden" name="_subject" value="Nouvelle réservation OCD !">
+                <input type="hidden" name="_captcha" value="false">
+                <input type="hidden" name="Package" id="inputPackage">
+                <input type="hidden" name="Date_Reservation" id="inputDate">
+                <input type="hidden" name="Mode" id="inputMode">
+
+                <div class="form-group">
+                    <label>Nom complet *</label>
+                    <input type="text" name="Nom" required placeholder="Ex: Jean Dupont">
+                </div>
+                <div class="form-group">
+                    <label>Nom de votre Entreprise/Business *</label>
+                    <input type="text" name="Entreprise" required placeholder="Ex: Ma Super Boutique">
+                </div>
+                <div class="form-group">
+                    <label>Adresse E-mail *</label>
+                    <input type="email" name="email" required placeholder="votre@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Numéro WhatsApp *</label>
+                    <input type="tel" name="WhatsApp" required placeholder="+228 XX XX XX XX">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Annuler</button>
+                    <button type="submit" class="btn-submit">Confirmer la demande</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <footer>
-        &copy; 2026 House of Challenge. Tous droits réservés.
+        &copy; 2026 OCD - Opportunités C'est Dehors. Tous droits réservés.
     </footer>
 
     <script>
         // --- VARIABLES GLOBALES ---
         let currentMode = null;
         let selectedDate = null;
+        
+        // Gestion du calendrier
+        let currentYear = 2026;
+        let currentMonth = 11; // 11 = Décembre (0-indexé)
+        
+        const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
 
         // --- LOGIQUE DU CHOIX ---
         function selectChoice(mode) {
             currentMode = mode;
             
-            // Mettre à jour les boutons
             document.getElementById('btn-presentiel').classList.remove('active');
             document.getElementById('btn-distance').classList.remove('active');
             
@@ -451,25 +530,50 @@
                 document.getElementById('btn-distance').classList.add('active');
             }
 
-            // Afficher le calendrier
-            const calendarSection = document.getElementById('calendarSection');
-            calendarSection.classList.add('active');
-            
-            // Cacher les packages si on change de mode
+            // Reset du calendrier à Décembre 2026 quand on change de mode
+            currentYear = 2026;
+            currentMonth = 11;
+
+            document.getElementById('calendarSection').classList.add('active');
             document.getElementById('packagesSection').classList.remove('active');
             selectedDate = null;
 
-            // Générer le calendrier de Décembre 2026
-            generateCalendar(2026, 11); // 11 = Décembre (0-indexé)
+            generateCalendar(currentYear, currentMonth);
+            document.getElementById('calendarSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- NAVIGATION CALENDRIER ---
+        function changeMonth(direction) {
+            currentMonth += direction;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            } else if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
             
-            // Scroll vers le calendrier
-            calendarSection.scrollIntoView({ behavior: 'smooth' });
+            // Bloquer si on essaie d'aller avant Décembre 2026
+            if (currentYear === 2026 && currentMonth < 11) {
+                currentMonth = 11;
+                return;
+            }
+
+            generateCalendar(currentYear, currentMonth);
+            
+            // Cacher les packages car on a changé de mois
+            document.getElementById('packagesSection').classList.remove('active');
+            selectedDate = null;
         }
 
         // --- LOGIQUE DU CALENDRIER ---
         function generateCalendar(year, month) {
             const grid = document.getElementById('calendarGrid');
             grid.innerHTML = '';
+            document.getElementById('monthLabel').textContent = `${monthNames[month]} ${year}`;
+
+            // Gestion des boutons Précédent/Suivant
+            document.getElementById('prevMonth').disabled = (year === 2026 && month === 11);
 
             // Noms des jours
             const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
@@ -480,10 +584,9 @@
                 grid.appendChild(div);
             });
 
-            // Calcul du premier jour du mois
+            // Calcul du premier jour
             const firstDay = new Date(year, month, 1);
-            let startDay = firstDay.getDay(); // 0 = Dimanche
-            // Ajustement pour que Lundi soit le premier jour (1)
+            let startDay = firstDay.getDay(); 
             if (startDay === 0) startDay = 7; 
 
             // Jours vides avant le 1er
@@ -499,57 +602,41 @@
                 const div = document.createElement('div');
                 div.className = 'calendar-day';
                 div.textContent = i;
-                
-                // Bloquer les dates avant le 1er Décembre 2026
-                if (year === 2026 && month === 11 && i < 1) {
-                    div.classList.add('disabled');
-                } else {
-                    div.onclick = () => selectDate(div, i, year, month);
-                }
-                
+                div.onclick = () => selectDate(div, i, year, month);
                 grid.appendChild(div);
             }
         }
 
         function selectDate(element, day, year, month) {
-            // Retirer la sélection précédente
             document.querySelectorAll('.calendar-day').forEach(el => el.classList.remove('selected'));
-            
-            // Ajouter la sélection
             element.classList.add('selected');
-            
-            const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
             selectedDate = `${day} ${monthNames[month]} ${year}`;
 
-            // Afficher les packages
             document.getElementById('packagesSection').classList.add('active');
             document.getElementById('packagesSection').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // --- LOGIQUE DU MODAL ---
-        function openModal(packageName, duration, price) {
+        // --- LOGIQUE DU FORMULAIRE ---
+        function openReservationForm(packageName, duration, price) {
             if (!selectedDate) {
                 alert("Veuillez d'abord sélectionner une date dans le calendrier.");
                 return;
             }
             
-            document.getElementById('modalPackage').textContent = packageName;
-            document.getElementById('modalDuration').textContent = duration;
-            document.getElementById('modalPrice').textContent = price;
-            document.getElementById('modalDate').textContent = selectedDate;
-            document.getElementById('modalMode').textContent = (currentMode === 'presentiel') ? 'Présentiel à Lomé' : 'À Distance (Monde)';
+            // Mise à jour du récapitulatif
+            document.getElementById('recapPackage').textContent = `${packageName} (${duration}) - ${price}`;
+            
+            // Remplissage des champs cachés du formulaire
+            document.getElementById('inputPackage').value = `${packageName} (${duration}) - ${price}`;
+            document.getElementById('inputDate').value = selectedDate;
+            document.getElementById('inputMode').value = (currentMode === 'presentiel') ? 'Présentiel à Lomé' : 'À Distance (Monde)';
 
-            document.getElementById('confirmationModal').classList.add('active');
+            document.getElementById('reservationModal').classList.add('active');
         }
 
         function closeModal() {
-            document.getElementById('confirmationModal').classList.remove('active');
+            document.getElementById('reservationModal').classList.remove('active');
         }
-
-        // Initialisation : On génère le calendrier au chargement mais il est caché
-        window.onload = () => {
-            generateCalendar(2026, 11);
-        };
     </script>
 </body>
 </html>
